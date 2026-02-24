@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Url Shortener</h1>
+        <form id="shorten-form" >
+            <div>
+                <label for="url">Enter URL:</label>
+                <input type="url" name="url" id="url" required>
+            </div>
+             <div>
+                <label for="shortCode">Enter ShortCode:</label>
+                <input type="text" name="shortCode" id="shortCode" required>
+            </div>
+            <button type="submit">Shorten</button>
+        </form>
+        <h2>Shortened URL's</h2>
+        <ul id="Shortend-urls">
+
+        </ul>
+    </div> 
+</body>
+<script>
+    const fetchShortenedURL = async()=>{
+        const responce = await fetch("/links");
+        const links= await responce.json();
+        console.log("links",links)
+        const list = document.getElementById("Shortend-urls")
+        list.innerHTML="";
+        for(const [shortCode,url] of Object.entries(links)){
+            const li = document.createElement('li');
+          const Turncatedurl =url.length >=30? `${url.slice(0,30)}...`:url;
+           li.innerHTML = `<a href="/${shortCode}" target="_blank">${window.location.origin}/${shortCode}</a> - ${Turncatedurl}`;
+            list.appendChild(li)
+        }
+    }
+
+
+
+
+    document.getElementById('shorten-form').addEventListener('submit',async(event)=>{
+        event.preventDefault(); // this will not submit untill it pressed
+        const formdata = new FormData(event.target); //event.target helps to get the value
+        const url = formdata.get('url')
+        const shortCode = formdata.get('shortCode')
+        console.log(url,shortCode)
+    
+        try{
+            const responce = await fetch("/shorten",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({url,shortCode})
+            })
+            if(responce.ok){
+                fetchShortenedURL();
+                alert("form submitted Successfully")
+                event.target.reset();
+                
+            }
+            else{
+                const ErrorMEssage = await responce.text();
+            alert(ErrorMEssage)
+            }
+        }
+        
+        catch(error){
+           console.log(error);
+        }
+    })
+fetchShortenedURL();
+</script>
+</html>
